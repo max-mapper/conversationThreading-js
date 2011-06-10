@@ -120,6 +120,66 @@
         idTable[id] = container;
         return container;
       }
+      
+      function groupBySubject(root) {
+        var subjectTable = {};
+        _.each(root.children, function(container) {
+          if(!container.message) {
+            var c = container.children[0];
+          } else {
+            var c = container;
+          }
+          if (c && c.message) {
+            var message = c.message;
+          } else {
+            return;
+          }
+          var subject = message.subject;
+          if (subject.length === 0) return;
+          var existing = subjectTable[subject];
+          if (!existing) {
+            subjectTable[subject] = c;
+          } else if (
+              (typeof(existing.message) !== "undefined") &&
+              (typeof(c.message) === "undefined")
+            ) {
+            subjectTable[subject] = c;
+          }
+        })
+        
+        for(var i = root.children.length - 1; i >= 0; i--) {
+          var container = root.children[i];
+          if (container.message) {
+            var subject = container.message.subject;
+          } else {
+            var subject = container.children[0].message.subject;
+          }
+          var c = subjectTable[subject];
+          if (!c || c === container) return;
+        }
+        
+        if (
+          (typeof(c.message) === "undefined") &&
+          (typeof(container.message) === "undefined")
+        ) {
+          _.each(container.children, function(ctr) {
+            c.addChild(ctr);
+          })
+          container.parent.removeChild(container);
+        } else if (
+          (typeof(c.message) === "undefined") &&
+          (typeof(container.message) !== "undefined")
+        ) {
+          c.addChild(container);
+        } else {
+          var newContainer = mail.messageContainer();
+          newContainer.addChild(c);
+          newContainer.addChild(container);
+          subjectTable[subject] = newContainer;
+        }
+        
+        return subjectTable;
+      }
     
       return {
         getContainer: getContainer,
@@ -133,10 +193,48 @@
     }();
   }
   
+  function util() {
+    return function() {
+      
+      function isReplyOrForward(subject) {
+        var pattern = /^(Re|Fwd)/i;
+        var match = subject.match(pattern);
+        return match ? true : false;
+      }
+      
+      function normalizeSubject(subject) {
+        var pattern = /((Re|Fwd)(\[[\d+]\])?:(\s)?)*([\w]*)/i;
+        var match = subject.match(pattern);
+        return match ? match[5] : false;
+      }
+      
+      function normalizeMessageId(messageId) {
+        var pattern = /<([^<>]+)>/;
+        var match = messageId.match(pattern);
+        return match ? match[1] : null;
+      }
+      
+      function parseReferences(inReplyTo) {
+        var pattern = /<[^<>]+>/g;
+        return _.map(inReplyTo.match(pattern), function(match) {
+          return match.match(/[^<>]+/)[0];
+        })
+      }
+      
+      return {
+        isReplyOrForward: isReplyOrForward,
+        normalizeSubject: normalizeSubject,
+        normalizeMessageId: normalizeMessageId,
+        parseReferences: parseReferences
+      }
+    }();
+  }
+  
   var mail = this.mail = {
     message: message,
     messageContainer: messageContainer,
-    messageThread: messageThread
+    messageThread: messageThread,
+    util: util
   };
   
   if (typeof module !== 'undefined' && module.exports) {

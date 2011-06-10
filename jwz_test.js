@@ -464,3 +464,58 @@ it(containerC).equal(containerZ.children[2]);
 it(containerA).equal(containerZ.children[3]);
 it(containerB).equal(containerA.children[0]);
 it(containerD).equal(containerC.children[0]);
+
+// group all messages in the root set by subject
+// PENDING
+
+// ---- message regex tests ----
+
+var util = mail.util();
+it("Subject").equal(util.normalizeSubject("Subject"));
+it("Subject").equal(util.normalizeSubject("Re:Subject"));
+it("Subject").equal(util.normalizeSubject("RE:Subject"));
+it("Subject").equal(util.normalizeSubject("Re: Re[2]:Subject"));
+it("Subject").equal(util.normalizeSubject("Re[2]:Subject"));
+it("Subject").equal(util.normalizeSubject("Re: Subject"));
+it("Subject").equal(util.normalizeSubject("Re:Re:Subject"));
+it("Subject").equal(util.normalizeSubject("Re: Re: Subject"));
+it("Subject").equal(util.normalizeSubject("Fwd:Subject"));
+it("Subject").equal(util.normalizeSubject("Fwd:Fwd:Subject"));
+it("Subject").equal(util.normalizeSubject("Fwd: Fwd: Subject"));
+it("Subject").equal(util.normalizeSubject("Fwd: Subject"));
+
+it(true).equal(util.isReplyOrForward("Fwd: Subject"));
+it(true).equal(util.isReplyOrForward("Re: Subject"));
+it(false).equal(util.isReplyOrForward("Subject"));
+it(true).equal(util.isReplyOrForward("RE: Re: Subject"));
+
+var str = "<e22ff8510609251339s53fed0dcka38d118e00ed9ef7@mail.gmail.com>";
+var messageId = "e22ff8510609251339s53fed0dcka38d118e00ed9ef7@mail.gmail.com";
+it(messageId).equal(util.normalizeMessageId(str));
+
+var str = "pizza tacos <e22ff8510609251339s53fed0dcka38d118e00ed9ef7@mail.gmail.com>";
+var messageId = "e22ff8510609251339s53fed0dcka38d118e00ed9ef7@mail.gmail.com";
+it(messageId).equal(util.normalizeMessageId(str));
+
+var str = "a b c";
+var messageId = null;
+it(null).equal(util.normalizeMessageId(str));
+
+var str = "<e22ff8510609251339s53fed0dcka38d118e00ed9ef7@mail.gmail.com> asd sf";
+var messageId = ["e22ff8510609251339s53fed0dcka38d118e00ed9ef7@mail.gmail.com"];
+it(messageId[0]).equal(util.parseReferences(str)[0]);
+
+var str = "<a@mail.gmail.com> <b@mail.gmail.com>";
+var messageId = ["a@mail.gmail.com", "b@mail.gmail.com"];
+it(messageId[0]).equal(util.parseReferences(str)[0]);
+it(messageId[1]).equal(util.parseReferences(str)[1]);
+
+var str = "<a@mail.gmail.com> <b@mail.gmail.com>";
+var messageId = ["a@mail.gmail.com", "b@mail.gmail.com"];
+it(messageId[0]).equal(util.parseReferences(str)[0]);
+it(messageId[1]).equal(util.parseReferences(str)[1]);
+
+var str = "sdf <a> sdf <b> sdf";
+var messageId = ["a", "b"];
+it(messageId[0]).equal(util.parseReferences(str)[0]);
+it(messageId[1]).equal(util.parseReferences(str)[1]);
