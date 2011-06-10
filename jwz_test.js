@@ -466,11 +466,67 @@ it(containerB).equal(containerA.children[0]);
 it(containerD).equal(containerC.children[0]);
 
 // group all messages in the root set by subject
-// PENDING
+var thread = mail.messageThread();
+var root = mail.messageContainer();
+var containerA = mail.messageContainer(mail.message("subject_a", "a", []))
+root.addChild(containerA);
+var containerB = mail.messageContainer(mail.message("Re: subject_z", "b", []))
+root.addChild(containerB);
+var containerC = mail.messageContainer(mail.message("Re: subject_z", "c", []))
+root.addChild(containerC);
+var containerD = mail.messageContainer(mail.message("subject_z", "d", []))
+root.addChild(containerD);
+var subjectHash = thread.groupBySubject(root);
+it(true).equal(_.include(_.keys(subjectHash), "subject_a"));
+it(true).equal(_.include(_.keys(subjectHash), "subject_z"));
+it(2).equal(root.children.length);
+it(containerA).equal(root.children[0]);
+it(containerD).equal(root.children[1]);
+it(2).equal(containerD.children.length);
+it(containerC).equal(containerD.children[0]);
+it(containerB).equal(containerD.children[1]);
+
+// group all messages in the root set by subject including multiple nested messages
+var thread = mail.messageThread();
+var root = mail.messageContainer();
+var containerA = mail.messageContainer(mail.message("subject_a", "a", []))
+root.addChild(containerA);
+var containerB = mail.messageContainer(mail.message("Re: subject_z", "b", []))
+root.addChild(containerB);
+var containerC = mail.messageContainer(mail.message("Re: Re: subject_z", "c", []))
+root.addChild(containerC);
+var containerD = mail.messageContainer(mail.message("subject_z", "d", []))
+root.addChild(containerD);
+var subjectHash = thread.groupBySubject(root);
+it(true).equal(_.include(_.keys(subjectHash), "subject_a"));
+it(true).equal(_.include(_.keys(subjectHash), "subject_z"));
+it(2).equal(root.children.length);
+it(containerA).equal(root.children[0]);
+it(containerD).equal(root.children[1]);
+it(2).equal(containerD.children.length);
+it(containerC).equal(containerD.children[0]);
+it(containerB).equal(containerD.children[1]);
+
+// create tree based on message-IDs and references
+var thread = mail.messageThread();
+var messages = [
+  mail.message("subject", "a", ""),
+  mail.message("subject", "b", "a"),
+  mail.message("subject", "c", ["a", "b"]),
+  mail.message("subject", "d", ["a", "b", "c"]),
+  mail.message("subject", "e", ["d"])
+];
+var root = thread.thread(messages);
+it(1).equal(root.children.length);
+it("a").equal(root.children[0].message.id);
+it("b").equal(root.children[0].children[0].message.id);
+it("c").equal(root.children[0].children[0].children[0].message.id);
+it("d").equal(root.children[0].children[0].children[0].children[0].message.id);
+it("e").equal(root.children[0].children[0].children[0].children[0].children[0].message.id);
 
 // ---- message regex tests ----
 
-var util = mail.util();
+var util = mail.util;
 it("Subject").equal(util.normalizeSubject("Subject"));
 it("Subject").equal(util.normalizeSubject("Re:Subject"));
 it("Subject").equal(util.normalizeSubject("RE:Subject"));

@@ -134,48 +134,61 @@
           } else {
             return;
           }
-          var subject = message.subject;
+          var subject = util.normalizeSubject(message.subject);
           if (subject.length === 0) return;
           var existing = subjectTable[subject];
+          
           if (!existing) {
             subjectTable[subject] = c;
           } else if (
-              (typeof(existing.message) !== "undefined") &&
-              (typeof(c.message) === "undefined")
-            ) {
+            (typeof(existing.message) !== "undefined") && (
+              (typeof(c.message) === "undefined") ||
+              (util.isReplyOrForward(existing.message.subject)) &&
+              (!util.isReplyOrForward(message.subject))
+            )
+          ) {
             subjectTable[subject] = c;
-          }
+          }          
         })
-        
+
         for(var i = root.children.length - 1; i >= 0; i--) {
           var container = root.children[i];
+
           if (container.message) {
             var subject = container.message.subject;
           } else {
             var subject = container.children[0].message.subject;
           }
+          
+          subject = util.normalizeSubject(subject);
           var c = subjectTable[subject];
-          if (!c || c === container) return;
-        }
+
+          if (!c || c === container) continue;
         
-        if (
-          (typeof(c.message) === "undefined") &&
-          (typeof(container.message) === "undefined")
-        ) {
-          _.each(container.children, function(ctr) {
-            c.addChild(ctr);
-          })
-          container.parent.removeChild(container);
-        } else if (
-          (typeof(c.message) === "undefined") &&
-          (typeof(container.message) !== "undefined")
-        ) {
-          c.addChild(container);
-        } else {
-          var newContainer = mail.messageContainer();
-          newContainer.addChild(c);
-          newContainer.addChild(container);
-          subjectTable[subject] = newContainer;
+          if (
+            (typeof(c.message) === "undefined") &&
+            (typeof(container.message) === "undefined")
+          ) {
+            _.each(container.children, function(ctr) {
+              c.addChild(ctr);
+            })
+            container.parent.removeChild(container);
+          } else if (
+            (typeof(c.message) === "undefined") &&
+            (typeof(container.message) !== "undefined")
+          ) {
+            c.addChild(container);
+          } else if (
+            (!util.isReplyOrForward(c.message.subject)) &&
+            (util.isReplyOrForward(container.message.subject))
+          ) {
+            c.addChild(container);
+          } else {
+            var newContainer = mail.messageContainer();
+            newContainer.addChild(c);
+            newContainer.addChild(container);
+            subjectTable[subject] = newContainer;
+          }
         }
         
         return subjectTable;
@@ -187,47 +200,38 @@
         createIdTable: createIdTable,
         promoteChildren: promoteChildren,
         pruneEmpties: pruneEmpties,
+        groupBySubject: groupBySubject,
         thread: thread,
         idTable: idTable
       }
     }();
   }
   
-  function util() {
-    return function() {
-      
-      function isReplyOrForward(subject) {
-        var pattern = /^(Re|Fwd)/i;
-        var match = subject.match(pattern);
-        return match ? true : false;
-      }
-      
-      function normalizeSubject(subject) {
-        var pattern = /((Re|Fwd)(\[[\d+]\])?:(\s)?)*([\w]*)/i;
-        var match = subject.match(pattern);
-        return match ? match[5] : false;
-      }
-      
-      function normalizeMessageId(messageId) {
-        var pattern = /<([^<>]+)>/;
-        var match = messageId.match(pattern);
-        return match ? match[1] : null;
-      }
-      
-      function parseReferences(inReplyTo) {
-        var pattern = /<[^<>]+>/g;
-        return _.map(inReplyTo.match(pattern), function(match) {
-          return match.match(/[^<>]+/)[0];
-        })
-      }
-      
-      return {
-        isReplyOrForward: isReplyOrForward,
-        normalizeSubject: normalizeSubject,
-        normalizeMessageId: normalizeMessageId,
-        parseReferences: parseReferences
-      }
-    }();
+  var util = {
+    isReplyOrForward: function(subject) {
+      var pattern = /^(Re|Fwd)/i;
+      var match = subject.match(pattern);
+      return match ? true : false;
+    },
+    
+    normalizeSubject: function(subject) {
+      var pattern = /((Re|Fwd)(\[[\d+]\])?:(\s)?)*([\w]*)/i;
+      var match = subject.match(pattern);
+      return match ? match[5] : false;
+    },
+    
+    normalizeMessageId: function(messageId) {
+      var pattern = /<([^<>]+)>/;
+      var match = messageId.match(pattern);
+      return match ? match[1] : null;
+    },
+    
+    parseReferences: function(inReplyTo) {
+      var pattern = /<[^<>]+>/g;
+      return _.map(inReplyTo.match(pattern), function(match) {
+        return match.match(/[^<>]+/)[0];
+      })
+    }
   }
   
   var mail = this.mail = {
