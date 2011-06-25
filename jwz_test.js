@@ -524,6 +524,24 @@ it("c").equal(root.children[0].children[0].children[0].message.id);
 it("d").equal(root.children[0].children[0].children[0].children[0].message.id);
 it("e").equal(root.children[0].children[0].children[0].children[0].children[0].message.id);
 
+//
+// (dummy in place of "a")
+// +- b
+// +- c
+// +- d
+//
+// group messages that point at missing reference message under a dummy
+var thread = mail.messageThread();
+var messages = [
+  mail.message("subject", "b", "a"),
+  mail.message("subject", "c", "a"),
+  mail.message("subject", "d", "a")
+];
+var root = thread.thread(messages);
+it(1).equal(root.children.length);
+it(null).equal(root.message);
+it(3).equal(root.children[0].children.length);
+
 // ---- message regex tests ----
 
 var util = mail.util;
