@@ -1,3 +1,11 @@
+// example usage: 
+// thread = mail.messageThread().thread(messages.map(
+//   function(message) { 
+//     return mail.message(message.subject, message.messageId, message.references);
+//   }
+// ));
+// conversation = thread.getConversation(messageId);
+
 (function() {
 
   function message(subject, id, references) {
@@ -14,6 +22,57 @@
     return function(message) {
       var children = [];
     
+      function getConversation(id) {
+        var child = this.getSpecificChild(id);
+        var flattened = [];
+        if(child && child.flattenChildren()) flattened = child.flattenChildren();
+        if(child.message) flattened.unshift(child.message);
+        return flattened;
+      }
+      
+      function flattenChildren() {
+        var messages = [];
+        _.each(this.children, function(child) {
+          if (child.message) messages.push(child.message);
+          var nextChildren = child.flattenChildren();
+          if (nextChildren) {
+            _.each(nextChildren, function(nextChild) {
+              messages.push(nextChild);
+            })
+          }
+        });
+        if (messages.length > 0) return messages;
+      }
+      
+      function getSpecificChild(id) {
+        var instance = this;
+        if (instance.message && instance.message.id == id) return instance;
+        var specificChild = null;
+        _.each(instance.children, function(child) {
+          var found = child.getSpecificChild(id);
+          if (found) {
+            specificChild = child;
+            return;
+          }
+        })
+        return specificChild;
+      }
+
+      function threadParent() {
+        if (!this.message) return this;
+        var next = this.parent;
+        if (!next) return this;
+        var top = next;
+        while (next) {
+          next = next.parent;
+          if (next) {
+            if (!next.message) return top;
+            top = next;
+          }
+        }
+        return top;
+      }
+      
       function addChild(child) {
         if(child.parent) child.parent.removeChild(child);
         this.children.push(child);
@@ -38,6 +97,10 @@
       return {
         message: message,
         children: children,
+        flattenChildren: flattenChildren,
+        getConversation: getConversation,
+        getSpecificChild: getSpecificChild,
+        threadParent: threadParent,
         addChild: addChild,
         removeChild: removeChild,
         hasDescendant: hasDescendant
@@ -134,7 +197,7 @@
           } else {
             return;
           }
-          var subject = util.normalizeSubject(message.subject);
+          var subject = helpers.normalizeSubject(message.subject);
           if (subject.length === 0) return;
           var existing = subjectTable[subject];
           
@@ -143,8 +206,8 @@
           } else if (
             (typeof(existing.message) !== "undefined") && (
               (typeof(c.message) === "undefined") ||
-              (util.isReplyOrForward(existing.message.subject)) &&
-              (!util.isReplyOrForward(message.subject))
+              (helpers.isReplyOrForward(existing.message.subject)) &&
+              (!helpers.isReplyOrForward(message.subject))
             )
           ) {
             subjectTable[subject] = c;
@@ -160,7 +223,7 @@
             var subject = container.children[0].message.subject;
           }
           
-          subject = util.normalizeSubject(subject);
+          subject = helpers.normalizeSubject(subject);
           var c = subjectTable[subject];
 
           if (!c || c === container) continue;
@@ -179,8 +242,8 @@
           ) {
             c.addChild(container);
           } else if (
-            (!util.isReplyOrForward(c.message.subject)) &&
-            (util.isReplyOrForward(container.message.subject))
+            (!helpers.isReplyOrForward(c.message.subject)) &&
+            (helpers.isReplyOrForward(container.message.subject))
           ) {
             c.addChild(container);
           } else {
@@ -207,7 +270,7 @@
     }();
   }
   
-  var util = {
+  var helpers = {
     isReplyOrForward: function(subject) {
       var pattern = /^(Re|Fwd)/i;
       var match = subject.match(pattern);
@@ -226,9 +289,10 @@
       return match ? match[1] : null;
     },
     
-    parseReferences: function(inReplyTo) {
+    parseReferences: function(references) {
+      if (!references) return null;
       var pattern = /<[^<>]+>/g;
-      return _.map(inReplyTo.match(pattern), function(match) {
+      return _.map(references.match(pattern), function(match) {
         return match.match(/[^<>]+/)[0];
       })
     }
@@ -238,7 +302,7 @@
     message: message,
     messageContainer: messageContainer,
     messageThread: messageThread,
-    util: util
+    helpers: helpers
   };
   
   if (typeof module !== 'undefined' && module.exports) {

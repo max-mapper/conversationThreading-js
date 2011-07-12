@@ -19,6 +19,58 @@ function child(idTable, id, childIndex) {
   return idTable[id].children[childIndex];
 }
 
+// ---- message regex tests ----
+
+var util = mail.helpers;
+it("Subject").equal(util.normalizeSubject("Subject"));
+it("Subject").equal(util.normalizeSubject("Re:Subject"));
+it("Subject").equal(util.normalizeSubject("RE:Subject"));
+it("Subject").equal(util.normalizeSubject("Re: Re[2]:Subject"));
+it("Subject").equal(util.normalizeSubject("Re[2]:Subject"));
+it("Subject").equal(util.normalizeSubject("Re: Subject"));
+it("Subject").equal(util.normalizeSubject("Re:Re:Subject"));
+it("Subject").equal(util.normalizeSubject("Re: Re: Subject"));
+it("Subject").equal(util.normalizeSubject("Fwd:Subject"));
+it("Subject").equal(util.normalizeSubject("Fwd:Fwd:Subject"));
+it("Subject").equal(util.normalizeSubject("Fwd: Fwd: Subject"));
+it("Subject").equal(util.normalizeSubject("Fwd: Subject"));
+
+it(true).equal(util.isReplyOrForward("Fwd: Subject"));
+it(true).equal(util.isReplyOrForward("Re: Subject"));
+it(false).equal(util.isReplyOrForward("Subject"));
+it(true).equal(util.isReplyOrForward("RE: Re: Subject"));
+
+var str = "<e22ff8510609251339s53fed0dcka38d118e00ed9ef7@mail.gmail.com>";
+var messageId = "e22ff8510609251339s53fed0dcka38d118e00ed9ef7@mail.gmail.com";
+it(messageId).equal(util.normalizeMessageId(str));
+
+var str = "pizza tacos <e22ff8510609251339s53fed0dcka38d118e00ed9ef7@mail.gmail.com>";
+var messageId = "e22ff8510609251339s53fed0dcka38d118e00ed9ef7@mail.gmail.com";
+it(messageId).equal(util.normalizeMessageId(str));
+
+var str = "a b c";
+var messageId = null;
+it(null).equal(util.normalizeMessageId(str));
+
+var str = "<e22ff8510609251339s53fed0dcka38d118e00ed9ef7@mail.gmail.com> asd sf";
+var messageId = ["e22ff8510609251339s53fed0dcka38d118e00ed9ef7@mail.gmail.com"];
+it(messageId[0]).equal(util.parseReferences(str)[0]);
+
+var str = "<a@mail.gmail.com> <b@mail.gmail.com>";
+var messageId = ["a@mail.gmail.com", "b@mail.gmail.com"];
+it(messageId[0]).equal(util.parseReferences(str)[0]);
+it(messageId[1]).equal(util.parseReferences(str)[1]);
+
+var str = "<a@mail.gmail.com> <b@mail.gmail.com>";
+var messageId = ["a@mail.gmail.com", "b@mail.gmail.com"];
+it(messageId[0]).equal(util.parseReferences(str)[0]);
+it(messageId[1]).equal(util.parseReferences(str)[1]);
+
+var str = "sdf <a> sdf <b> sdf";
+var messageId = ["a", "b"];
+it(messageId[0]).equal(util.parseReferences(str)[0]);
+it(messageId[1]).equal(util.parseReferences(str)[1]);
+
 //
 // a
 // +- b
@@ -542,54 +594,14 @@ it(1).equal(root.children.length);
 it(null).equal(root.message);
 it(3).equal(root.children[0].children.length);
 
-// ---- message regex tests ----
-
-var util = mail.util;
-it("Subject").equal(util.normalizeSubject("Subject"));
-it("Subject").equal(util.normalizeSubject("Re:Subject"));
-it("Subject").equal(util.normalizeSubject("RE:Subject"));
-it("Subject").equal(util.normalizeSubject("Re: Re[2]:Subject"));
-it("Subject").equal(util.normalizeSubject("Re[2]:Subject"));
-it("Subject").equal(util.normalizeSubject("Re: Subject"));
-it("Subject").equal(util.normalizeSubject("Re:Re:Subject"));
-it("Subject").equal(util.normalizeSubject("Re: Re: Subject"));
-it("Subject").equal(util.normalizeSubject("Fwd:Subject"));
-it("Subject").equal(util.normalizeSubject("Fwd:Fwd:Subject"));
-it("Subject").equal(util.normalizeSubject("Fwd: Fwd: Subject"));
-it("Subject").equal(util.normalizeSubject("Fwd: Subject"));
-
-it(true).equal(util.isReplyOrForward("Fwd: Subject"));
-it(true).equal(util.isReplyOrForward("Re: Subject"));
-it(false).equal(util.isReplyOrForward("Subject"));
-it(true).equal(util.isReplyOrForward("RE: Re: Subject"));
-
-var str = "<e22ff8510609251339s53fed0dcka38d118e00ed9ef7@mail.gmail.com>";
-var messageId = "e22ff8510609251339s53fed0dcka38d118e00ed9ef7@mail.gmail.com";
-it(messageId).equal(util.normalizeMessageId(str));
-
-var str = "pizza tacos <e22ff8510609251339s53fed0dcka38d118e00ed9ef7@mail.gmail.com>";
-var messageId = "e22ff8510609251339s53fed0dcka38d118e00ed9ef7@mail.gmail.com";
-it(messageId).equal(util.normalizeMessageId(str));
-
-var str = "a b c";
-var messageId = null;
-it(null).equal(util.normalizeMessageId(str));
-
-var str = "<e22ff8510609251339s53fed0dcka38d118e00ed9ef7@mail.gmail.com> asd sf";
-var messageId = ["e22ff8510609251339s53fed0dcka38d118e00ed9ef7@mail.gmail.com"];
-it(messageId[0]).equal(util.parseReferences(str)[0]);
-
-var str = "<a@mail.gmail.com> <b@mail.gmail.com>";
-var messageId = ["a@mail.gmail.com", "b@mail.gmail.com"];
-it(messageId[0]).equal(util.parseReferences(str)[0]);
-it(messageId[1]).equal(util.parseReferences(str)[1]);
-
-var str = "<a@mail.gmail.com> <b@mail.gmail.com>";
-var messageId = ["a@mail.gmail.com", "b@mail.gmail.com"];
-it(messageId[0]).equal(util.parseReferences(str)[0]);
-it(messageId[1]).equal(util.parseReferences(str)[1]);
-
-var str = "sdf <a> sdf <b> sdf";
-var messageId = ["a", "b"];
-it(messageId[0]).equal(util.parseReferences(str)[0]);
-it(messageId[1]).equal(util.parseReferences(str)[1]);
+//group multiple threads
+var thread = mail.messageThread();
+var messages = [
+  mail.message("subject", "g", ["a", "b", "c"]),
+  mail.message("subject", "h", ["a", "b", "c", "d"]),
+  mail.message("subject", "i", ["a", "b", "c", "e", "f"])
+];
+var root = thread.thread(messages);
+it(1).equal(root.children.length);
+it(null).equal(root.message);
+it(3).equal(root.children[0].children.length);
