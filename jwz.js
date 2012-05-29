@@ -156,7 +156,11 @@
           var parentContainer = getContainer(message.id);
           parentContainer.message = message;
           var prev = null;
-          _.each(message.references, function(reference) {
+          var references = message.references || [];
+          if (typeof(references) == 'string') {
+            references = [references]
+          }
+          _.each(references, function(reference) {
             var container = getContainer(reference);
             if (prev && !_.include(_.keys(container), "parent") && !container.hasDescendant(prev)) {
               prev.addChild(container);
