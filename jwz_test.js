@@ -576,6 +576,10 @@ it("c").equal(root.children[0].children[0].children[0].message.id);
 it("d").equal(root.children[0].children[0].children[0].children[0].message.id);
 it("e").equal(root.children[0].children[0].children[0].children[0].children[0].message.id);
 
+// ensure getContainer and hasDescendant are working as expected
+it(root.getSpecificChild("e").message.references).deepEqual(["d"])
+it(root.hasDescendant(root.getSpecificChild("e"))).equal(true)
+
 //
 // (dummy in place of "a")
 // +- b
