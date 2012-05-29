@@ -51,7 +51,7 @@
         _.each(instance.children, function(child) {
           var found = child.getSpecificChild(id);
           if (found) {
-            specificChild = child;
+            specificChild = found;
             return;
           }
         })
@@ -89,7 +89,7 @@
         if (this.children.length < 1) return false;
         var descendantPresent = false;
         _.each(this.children, function(child) {
-          if(hasDescendant(child)) descendantPresent = true;
+          if(child.hasDescendant(container)) descendantPresent = true;
         })
         return descendantPresent;
       }
