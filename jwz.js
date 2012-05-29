@@ -51,7 +51,7 @@
         _.each(instance.children, function(child) {
           var found = child.getSpecificChild(id);
           if (found) {
-            specificChild = child;
+            specificChild = found;
             return;
           }
         })
@@ -89,7 +89,7 @@
         if (this.children.length < 1) return false;
         var descendantPresent = false;
         _.each(this.children, function(child) {
-          if(hasDescendant(child)) descendantPresent = true;
+          if(child.hasDescendant(container)) descendantPresent = true;
         })
         return descendantPresent;
       }
@@ -156,7 +156,11 @@
           var parentContainer = getContainer(message.id);
           parentContainer.message = message;
           var prev = null;
-          _.each(message.references, function(reference) {
+          var references = message.references || [];
+          if (typeof(references) == 'string') {
+            references = [references]
+          }
+          _.each(references, function(reference) {
             var container = getContainer(reference);
             if (prev && !_.include(_.keys(container), "parent") && !container.hasDescendant(prev)) {
               prev.addChild(container);
