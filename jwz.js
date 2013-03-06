@@ -119,7 +119,6 @@
           var container = idTable[id];
           if (!_.include(_.keys(container), "parent")) root.addChild(container);          
         })
-        delete idTable;
         pruneEmpties(root);
         return root;
       }
