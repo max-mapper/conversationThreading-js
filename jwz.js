@@ -1,6 +1,6 @@
-// example usage: 
+// example usage:
 // thread = mail.messageThread().thread(messages.map(
-//   function(message) { 
+//   function(message) {
 //     return mail.message(message.subject, message.messageId, message.references);
 //   }
 // ));
@@ -21,7 +21,7 @@
   function messageContainer(message) {
     return function(message) {
       var children = [];
-    
+
       function getConversation(id) {
         var child = this.getSpecificChild(id);
         var flattened = [];
@@ -29,7 +29,7 @@
         if(child.message) flattened.unshift(child.message);
         return flattened;
       }
-      
+
       function flattenChildren() {
         var messages = [];
         _.each(this.children, function(child) {
@@ -43,7 +43,7 @@
         });
         if (messages.length > 0) return messages;
       }
-      
+
       function getSpecificChild(id) {
         var instance = this;
         if (instance.message && instance.message.id == id) return instance;
@@ -72,18 +72,18 @@
         }
         return top;
       }
-      
+
       function addChild(child) {
         if(child.parent) child.parent.removeChild(child);
         this.children.push(child);
         child.parent = this;
       }
-    
+
       function removeChild(child) {
         this.children = _.without(this.children, child);
         delete child.parent;
       }
-    
+
       function hasDescendant(container) {
         if (this === container) return true;
         if (this.children.length < 1) return false;
@@ -93,7 +93,7 @@
         })
         return descendantPresent;
       }
-    
+
       return {
         message: message,
         children: children,
@@ -111,18 +111,18 @@
   function messageThread() {
     return function() {
       var idTable = {};
-    
+
       function thread(messages) {
         idTable = this.createIdTable(messages);
         var root = messageContainer();
         _.each(_.keys(idTable), function(id) {
           var container = idTable[id];
-          if (!_.include(_.keys(container), "parent")) root.addChild(container);          
+          if (!_.include(_.keys(container), "parent")) root.addChild(container);
         })
         pruneEmpties(root);
         return root;
       }
-    
+
       function pruneEmpties(parent) {
         for(var i = parent.children.length - 1; i >= 0; i--) {
           var container = parent.children[i];
@@ -140,7 +140,7 @@
           }
         }
       }
-    
+
       function promoteChildren(parent, container) {
         for(var i = container.children.length - 1; i >= 0; i--) {
           var child = container.children[i];
@@ -148,7 +148,7 @@
         }
         parent.removeChild(container);
       }
-    
+
       function createIdTable(messages) {
         idTable = {};
         _.map(messages, function(message) {
@@ -172,7 +172,7 @@
         })
         return idTable;
       }
-    
+
       function getContainer(id) {
         if (_.include(_.keys(idTable), id)) {
           return idTable[id];
@@ -180,13 +180,13 @@
           return createContainer(id);
         }
       }
-    
+
       function createContainer(id) {
         var container = mail.messageContainer();
         idTable[id] = container;
         return container;
       }
-      
+
       function groupBySubject(root) {
         var subjectTable = {};
         _.each(root.children, function(container) {
@@ -203,7 +203,7 @@
           var subject = helpers.normalizeSubject(message.subject);
           if (subject.length === 0) return;
           var existing = subjectTable[subject];
-          
+
           if (!existing) {
             subjectTable[subject] = c;
           } else if (
@@ -214,7 +214,7 @@
             )
           ) {
             subjectTable[subject] = c;
-          }          
+          }
         })
 
         for(var i = root.children.length - 1; i >= 0; i--) {
@@ -225,12 +225,12 @@
           } else {
             var subject = container.children[0].message.subject;
           }
-          
+
           subject = helpers.normalizeSubject(subject);
           var c = subjectTable[subject];
 
           if (!c || c === container) continue;
-        
+
           if (
             (typeof(c.message) === "undefined") &&
             (typeof(container.message) === "undefined")
@@ -256,10 +256,10 @@
             subjectTable[subject] = newContainer;
           }
         }
-        
+
         return subjectTable;
       }
-    
+
       return {
         getContainer: getContainer,
         createContainer: createContainer,
@@ -272,26 +272,26 @@
       }
     }();
   }
-  
+
   var helpers = {
     isReplyOrForward: function(subject) {
       var pattern = /^(Re|Fwd)/i;
       var match = subject.match(pattern);
       return match ? true : false;
     },
-    
+
     normalizeSubject: function(subject) {
       var pattern = /((Re|Fwd)(\[[\d+]\])?:(\s)?)*([\w]*)/i;
       var match = subject.match(pattern);
       return match ? match[5] : false;
     },
-    
+
     normalizeMessageId: function(messageId) {
       var pattern = /<([^<>]+)>/;
       var match = messageId.match(pattern);
       return match ? match[1] : null;
     },
-    
+
     parseReferences: function(references) {
       if (!references) return null;
       var pattern = /<[^<>]+>/g;
@@ -300,17 +300,17 @@
       })
     }
   }
-  
+
   var mail = this.mail = {
     message: message,
     messageContainer: messageContainer,
     messageThread: messageThread,
     helpers: helpers
   };
-  
+
   if (typeof module !== 'undefined' && module.exports) {
     _ = require('underscore');
     module.exports = mail;
   }
-  
+
 })();

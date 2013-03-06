@@ -3,7 +3,7 @@ var _ = require('underscore');
 var mail = require('./jwz.js');
 
 function isDummy(container) {
-  return typeof(container.message) === "undefined";  
+  return typeof(container.message) === "undefined";
 }
 
 function childCount(idTable, id) {
@@ -107,7 +107,7 @@ it(0).equal(childCount(idTable, "e"))
 //
 // a
 // +- b
-//    +- c (dummy) 
+//    +- c (dummy)
 //       +- d
 //         +- e
 // b
@@ -142,7 +142,7 @@ it(0).equal(childCount(idTable, "e"))
 //    +- c (dummy)
 //       +- d
 //          +- e
-// b 
+// b
 // +- c
 //    +- d
 //       +- e
@@ -174,16 +174,16 @@ it(0).equal(childCount(idTable, "y"))
 it("e").equal(childMessageId(idTable, "d", 0))
 it(0).equal(childCount(idTable, "e"))
 
-// 
-// before: 
+//
+// before:
 // a
 // +- b
-//   +- dummy 
-//  
+//   +- dummy
+//
 // after:
 // a
 // +- b
-// 
+//
 // prune containers with empty message and no children
 var thread = mail.messageThread();
 var root = mail.messageContainer();
@@ -199,18 +199,18 @@ it(1).equal(containerA.children.length);
 it(containerB).equal(containerA.children[0]);
 it(0).equal(containerB.children.length);
 
-// 
-// before: 
+//
+// before:
 // a
 // +- b
 //    +- z (dummy)
 //       +- c
-// 
+//
 // after:
 // a
 // +- b
 //    +- c
-// 
+//
 // prune containers with empty message and 1 non-empty child
 var thread = mail.messageThread();
 var root = mail.messageContainer();
@@ -297,7 +297,7 @@ it(containerC).equal(containerZ.children[1]);
 // after:
 // a
 // z (dummy)
-// +- b 
+// +- b
 // +- c
 // +- d
 //
@@ -368,16 +368,16 @@ it(containerD).equal(containerZ.children[0]);
 it(containerB).equal(containerZ.children[1]);
 it(containerC).equal(containerZ.children[2]);
 
-// 
+//
 // before:
 // z (dummy)
 // +- y (dummy)
 //    +- a
 // +- x (dummy)
-// 
+//
 // after:
 // a
-// 
+//
 // promote children of several containers with empty message and multiple children
 var thread = mail.messageThread();
 var root = mail.messageContainer();
@@ -450,20 +450,20 @@ it(containerD).equal(containerC.children[0]);
 //    +- x (dummy)
 //       +- w (dummy)
 //          +- a
-//             +- b 
-//          +- c   
+//             +- b
+//          +- c
 //             +- d
 //    +- v
 //       +- u
-//          +- t  
+//          +- t
 //             +- s
-//                +- q  
+//                +- q
 //                   +- e
 //          +- p
 //             +- f
 //
 // after:
-// z (dummy) 
+// z (dummy)
 // +- a
 //    +- b
 // +- c
