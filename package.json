@@ -1,0 +1,22 @@
+{
+  "name": "jwz",
+  "description": "A port of the JWZ threading algorithm to pure JavaScript",
+  "version": "1.0.0",
+  "homepage": "https://github.com/maxogden/conversationThreading-js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/maxogden/conversationThreading-js.git"
+  },
+  "author": {
+    "name": "Max Ogden",
+    "email": "max@maxogden.com"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "it-is": ">=1.0.1"
+  },
+  "main": "jwz.js",
+  "scripts": {
+    "test": "node jwz_test.js"
+  }
+}
