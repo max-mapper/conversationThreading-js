@@ -1,9 +1,8 @@
 var it = require('it-is');
-var _ = require('underscore');
 var mail = require('./jwz.js');
 
 function isDummy(container) {
-  return typeof(container.message) === "undefined";  
+  return typeof(container.message) === "undefined";
 }
 
 function childCount(idTable, id) {
@@ -97,7 +96,7 @@ var idTable = thread.createIdTable([
   mail.message("subject", "d", ["a", "b", "c"]),
   mail.message("subject", "e", "d")
 ]);
-it(5).equal(_.keys(idTable).length)
+it(5).equal(Object.keys(idTable).length)
 it("b").equal(childMessageId(idTable, "a", 0))
 it("c").equal(childMessageId(idTable, "b", 0))
 it("d").equal(childMessageId(idTable, "c", 0))
@@ -107,7 +106,7 @@ it(0).equal(childCount(idTable, "e"))
 //
 // a
 // +- b
-//    +- c (dummy) 
+//    +- c (dummy)
 //       +- d
 //         +- e
 // b
@@ -129,7 +128,7 @@ var idTable = thread.createIdTable([
   mail.message("subject", "d", ["a", "b", "c"]),
   mail.message("subject", "e", "d")
 ]);
-it(5).equal(_.keys(idTable).length)
+it(5).equal(Object.keys(idTable).length)
 it("b").equal(childMessageId(idTable, "a", 0))
 it(true).equal(isDummy(idTable["c"]));
 it("d").equal(childMessageId(idTable, "c", 0))
@@ -142,7 +141,7 @@ it(0).equal(childCount(idTable, "e"))
 //    +- c (dummy)
 //       +- d
 //          +- e
-// b 
+// b
 // +- c
 //    +- d
 //       +- e
@@ -164,7 +163,7 @@ var idTable = thread.createIdTable([
   mail.message("subject", "d", ["a", "b", "c"]),
   mail.message("subject", "e", ["z", "y", "d"])
 ]);
-it(7).equal(_.keys(idTable).length)
+it(7).equal(Object.keys(idTable).length)
 it("b").equal(childMessageId(idTable, "a", 0))
 it(true).equal(isDummy(idTable["c"]));
 it("d").equal(childMessageId(idTable, "c", 0))
@@ -174,16 +173,16 @@ it(0).equal(childCount(idTable, "y"))
 it("e").equal(childMessageId(idTable, "d", 0))
 it(0).equal(childCount(idTable, "e"))
 
-// 
-// before: 
+//
+// before:
 // a
 // +- b
-//   +- dummy 
-//  
+//   +- dummy
+//
 // after:
 // a
 // +- b
-// 
+//
 // prune containers with empty message and no children
 var thread = mail.messageThread();
 var root = mail.messageContainer();
@@ -199,18 +198,18 @@ it(1).equal(containerA.children.length);
 it(containerB).equal(containerA.children[0]);
 it(0).equal(containerB.children.length);
 
-// 
-// before: 
+//
+// before:
 // a
 // +- b
 //    +- z (dummy)
 //       +- c
-// 
+//
 // after:
 // a
 // +- b
 //    +- c
-// 
+//
 // prune containers with empty message and 1 non-empty child
 var thread = mail.messageThread();
 var root = mail.messageContainer();
@@ -297,7 +296,7 @@ it(containerC).equal(containerZ.children[1]);
 // after:
 // a
 // z (dummy)
-// +- b 
+// +- b
 // +- c
 // +- d
 //
@@ -368,16 +367,16 @@ it(containerD).equal(containerZ.children[0]);
 it(containerB).equal(containerZ.children[1]);
 it(containerC).equal(containerZ.children[2]);
 
-// 
+//
 // before:
 // z (dummy)
 // +- y (dummy)
 //    +- a
 // +- x (dummy)
-// 
+//
 // after:
 // a
-// 
+//
 // promote children of several containers with empty message and multiple children
 var thread = mail.messageThread();
 var root = mail.messageContainer();
@@ -450,20 +449,20 @@ it(containerD).equal(containerC.children[0]);
 //    +- x (dummy)
 //       +- w (dummy)
 //          +- a
-//             +- b 
-//          +- c   
+//             +- b
+//          +- c
 //             +- d
 //    +- v
 //       +- u
-//          +- t  
+//          +- t
 //             +- s
-//                +- q  
+//                +- q
 //                   +- e
 //          +- p
 //             +- f
 //
 // after:
-// z (dummy) 
+// z (dummy)
 // +- a
 //    +- b
 // +- c
@@ -529,8 +528,8 @@ root.addChild(containerC);
 var containerD = mail.messageContainer(mail.message("subject_z", "d", []))
 root.addChild(containerD);
 var subjectHash = thread.groupBySubject(root);
-it(true).equal(_.include(_.keys(subjectHash), "subject_a"));
-it(true).equal(_.include(_.keys(subjectHash), "subject_z"));
+it(true).equal(typeof(subjectHash.subject_a) !== 'undefined');
+it(true).equal(typeof(subjectHash.subject_z) !== 'undefined');
 it(2).equal(root.children.length);
 it(containerA).equal(root.children[0]);
 it(containerD).equal(root.children[1]);
@@ -550,8 +549,8 @@ root.addChild(containerC);
 var containerD = mail.messageContainer(mail.message("subject_z", "d", []))
 root.addChild(containerD);
 var subjectHash = thread.groupBySubject(root);
-it(true).equal(_.include(_.keys(subjectHash), "subject_a"));
-it(true).equal(_.include(_.keys(subjectHash), "subject_z"));
+it(true).equal(typeof(subjectHash.subject_a) !== 'undefined');
+it(true).equal(typeof(subjectHash.subject_z) !== 'undefined');
 it(2).equal(root.children.length);
 it(containerA).equal(root.children[0]);
 it(containerD).equal(root.children[1]);
