@@ -32,11 +32,11 @@
 
       function flattenChildren() {
         var messages = [];
-        _.each(this.children, function(child) {
+        this.children.forEach(function(child) {
           if (child.message) messages.push(child.message);
           var nextChildren = child.flattenChildren();
           if (nextChildren) {
-            _.each(nextChildren, function(nextChild) {
+            nextChildren.forEach(function(nextChild) {
               messages.push(nextChild);
             })
           }
@@ -48,7 +48,7 @@
         var instance = this;
         if (instance.message && instance.message.id == id) return instance;
         var specificChild = null;
-        _.each(instance.children, function(child) {
+        instance.children.forEach(function(child) {
           var found = child.getSpecificChild(id);
           if (found) {
             specificChild = found;
@@ -80,7 +80,9 @@
       }
 
       function removeChild(child) {
-        this.children = _.without(this.children, child);
+        this.children = this.children.filter(function (other) {
+          return other !== child
+        });
         delete child.parent;
       }
 
@@ -88,7 +90,7 @@
         if (this === container) return true;
         if (this.children.length < 1) return false;
         var descendantPresent = false;
-        _.each(this.children, function(child) {
+        this.children.forEach(function(child) {
           if(child.hasDescendant(container)) descendantPresent = true;
         })
         return descendantPresent;
@@ -115,9 +117,11 @@
       function thread(messages) {
         idTable = this.createIdTable(messages);
         var root = messageContainer();
-        _.each(_.keys(idTable), function(id) {
+        Object.keys(idTable).forEach(function(id) {
           var container = idTable[id];
-          if (!_.include(_.keys(container), "parent")) root.addChild(container);
+          if (typeof(container.parent) === 'undefined') {
+            root.addChild(container);
+          }
         })
         pruneEmpties(root);
         return root;
@@ -151,7 +155,7 @@
 
       function createIdTable(messages) {
         idTable = {};
-        _.map(messages, function(message) {
+        messages.forEach(function(message) {
           var parentContainer = getContainer(message.id);
           parentContainer.message = message;
           var prev = null;
@@ -159,9 +163,10 @@
           if (typeof(references) == 'string') {
             references = [references]
           }
-          _.each(references, function(reference) {
+          references.forEach(function(reference) {
             var container = getContainer(reference);
-            if (prev && !_.include(_.keys(container), "parent") && !container.hasDescendant(prev)) {
+            if (prev && typeof(container.parent) === 'undefined'
+                && !container.hasDescendant(prev)) {
               prev.addChild(container);
             }
             prev = container;
@@ -174,7 +179,7 @@
       }
 
       function getContainer(id) {
-        if (_.include(_.keys(idTable), id)) {
+        if (typeof(idTable[id]) !== 'undefined') {
           return idTable[id];
         } else {
           return createContainer(id);
@@ -189,7 +194,7 @@
 
       function groupBySubject(root) {
         var subjectTable = {};
-        _.each(root.children, function(container) {
+        root.children.forEach(function(container) {
           if(!container.message) {
             var c = container.children[0];
           } else {
@@ -235,7 +240,7 @@
             (typeof(c.message) === "undefined") &&
             (typeof(container.message) === "undefined")
           ) {
-            _.each(container.children, function(ctr) {
+            container.children.forEach(function(ctr) {
               c.addChild(ctr);
             })
             container.parent.removeChild(container);
@@ -295,7 +300,7 @@
     parseReferences: function(references) {
       if (!references) return null;
       var pattern = /<[^<>]+>/g;
-      return _.map(references.match(pattern), function(match) {
+      return references.match(pattern).map(function(match) {
         return match.match(/[^<>]+/)[0];
       })
     }
@@ -309,7 +314,6 @@
   };
 
   if (typeof module !== 'undefined' && module.exports) {
-    _ = require('underscore');
     module.exports = mail;
   }
 

@@ -1,5 +1,4 @@
 var it = require('it-is');
-var _ = require('underscore');
 var mail = require('./jwz.js');
 
 function isDummy(container) {
@@ -97,7 +96,7 @@ var idTable = thread.createIdTable([
   mail.message("subject", "d", ["a", "b", "c"]),
   mail.message("subject", "e", "d")
 ]);
-it(5).equal(_.keys(idTable).length)
+it(5).equal(Object.keys(idTable).length)
 it("b").equal(childMessageId(idTable, "a", 0))
 it("c").equal(childMessageId(idTable, "b", 0))
 it("d").equal(childMessageId(idTable, "c", 0))
@@ -129,7 +128,7 @@ var idTable = thread.createIdTable([
   mail.message("subject", "d", ["a", "b", "c"]),
   mail.message("subject", "e", "d")
 ]);
-it(5).equal(_.keys(idTable).length)
+it(5).equal(Object.keys(idTable).length)
 it("b").equal(childMessageId(idTable, "a", 0))
 it(true).equal(isDummy(idTable["c"]));
 it("d").equal(childMessageId(idTable, "c", 0))
@@ -164,7 +163,7 @@ var idTable = thread.createIdTable([
   mail.message("subject", "d", ["a", "b", "c"]),
   mail.message("subject", "e", ["z", "y", "d"])
 ]);
-it(7).equal(_.keys(idTable).length)
+it(7).equal(Object.keys(idTable).length)
 it("b").equal(childMessageId(idTable, "a", 0))
 it(true).equal(isDummy(idTable["c"]));
 it("d").equal(childMessageId(idTable, "c", 0))
@@ -529,8 +528,8 @@ root.addChild(containerC);
 var containerD = mail.messageContainer(mail.message("subject_z", "d", []))
 root.addChild(containerD);
 var subjectHash = thread.groupBySubject(root);
-it(true).equal(_.include(_.keys(subjectHash), "subject_a"));
-it(true).equal(_.include(_.keys(subjectHash), "subject_z"));
+it(true).equal(typeof(subjectHash.subject_a) !== 'undefined');
+it(true).equal(typeof(subjectHash.subject_z) !== 'undefined');
 it(2).equal(root.children.length);
 it(containerA).equal(root.children[0]);
 it(containerD).equal(root.children[1]);
@@ -550,8 +549,8 @@ root.addChild(containerC);
 var containerD = mail.messageContainer(mail.message("subject_z", "d", []))
 root.addChild(containerD);
 var subjectHash = thread.groupBySubject(root);
-it(true).equal(_.include(_.keys(subjectHash), "subject_a"));
-it(true).equal(_.include(_.keys(subjectHash), "subject_z"));
+it(true).equal(typeof(subjectHash.subject_a) !== 'undefined');
+it(true).equal(typeof(subjectHash.subject_z) !== 'undefined');
 it(2).equal(root.children.length);
 it(containerA).equal(root.children[0]);
 it(containerD).equal(root.children[1]);
