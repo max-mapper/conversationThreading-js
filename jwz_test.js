@@ -103,6 +103,35 @@ it("d").equal(childMessageId(idTable, "c", 0))
 it("e").equal(childMessageId(idTable, "d", 0))
 it(0).equal(childCount(idTable, "e"))
 
+
+//
+// a
+// +- b
+//    +- c
+//       +- d
+//          +- e
+// b
+// +- c
+//    +- d
+//       +- e
+// c
+// +- d
+//    +- e
+// d
+// +- e
+// e
+//
+// test if idTable public reference does not get lost.
+var thread = mail.messageThread();
+var root = thread.thread([
+  mail.message("subject", "a", ""),
+  mail.message("subject", "b", "a"),
+  mail.message("subject", "c", ["a", "b"]),
+  mail.message("subject", "d", ["a", "b", "c"]),
+  mail.message("subject", "e", "d")
+]);
+it(5).equal(Object.keys(thread.idTable).length)
+
 //
 // a
 // +- b
@@ -608,3 +637,4 @@ var root = thread.thread(messages);
 it(1).equal(root.children.length);
 it(null).equal(root.message);
 it(3).equal(root.children[0].children.length);
+
