@@ -25,7 +25,10 @@
       function getConversation(id) {
         var child = this.getSpecificChild(id);
         var flattened = [];
-        if(child) flattened = child.flattenChildren();
+        if(child) {
+          var children = child.flattenChildren();
+          if(children !== undefined) flattened = children;
+        }
         if(child.message) flattened.unshift(child.message);
         return flattened;
       }
